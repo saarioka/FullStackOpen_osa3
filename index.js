@@ -1,9 +1,12 @@
 const express = require('express')
+const morgan = require('morgan')
 const app = express()
 
 const bodyParser = require('body-parser')
-
 app.use(bodyParser.json())
+
+morgan.token('data', request => JSON.stringify(request.body))
+app.use(morgan(':method :url :status :res[content-length] - :response-time ms :data'))
 
 let persons = [
     { 
@@ -30,7 +33,6 @@ let persons = [
 
 app.post('/api/persons', (request, response) => {
   const body = request.body
-  console.log(persons)
 
   if (!body.name || !body.number) {
     return response.status(400).json({
