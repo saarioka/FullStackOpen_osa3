@@ -60,14 +60,6 @@ app.get('/api/persons', (request, response) => {
     .catch(error => next(error))
 })
 
-app.get('/info', (request, response) => {
-    response
-      .send(`Phonebook has info for ${persons.length} people
-                   </br></br> ${new Date()}`)
-      .catch(error => next(error))
-
-})
-
 app.get('/api/persons/:id', (request, response, next) => {
   Person.findById(request.params.id)
   .then(person => {
@@ -86,6 +78,19 @@ app.delete('/api/persons/:id', (request, response, next) => {
       response.status(204).end()
     })
     .catch(error => next(error))
+})
+
+app.get('/info', (request, response) => {
+
+  Person.countDocuments({}, function(error, count) {
+    
+    response
+      .send(
+        count
+        ? `Phonebook has info for ${count} people</br></br> ${new Date()}`
+        : error
+      )
+  })
 })
 
 const unknownEndpoint = (request, response) => {
