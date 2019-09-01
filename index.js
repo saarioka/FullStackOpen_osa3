@@ -13,28 +13,25 @@ app.use(morgan(':method :url :status :res[content-length] - :response-time ms :d
 app.use(cors())
 app.use(express.static('build'))
 
-app.post('/api/persons', (request, response) => {
+app.post('/api/persons', (request, response, next) => {
   const body = request.body
 
-  /*if (!body.name || !body.number) {
+  if (body.name === undefined || body.number === undefined) {
     console.log('content missing')
-    return response.status(400).json({
-      error: 'content missing'
-    })
-  }else if(Person.findById({name: body.name}).count != 0){
-    console.log('content missing')
-    return response.status(400).json({
-        error: 'name must be unique'
-      })
+    return response.status(400).json({ error: 'content missing' })
   }
-*/
+
   const person = new Person({
     name: body.name,
     number: body.number,
   })
-  person.save().then(response => {
-  console.log(`Added ${body.name} number ${body.number} to phonebook`);
+
+  person.save()
+  .then(savedPerson => savedPerson.toJSON())
+  .then(savedAndFormattedPerson => {
+    response.json(savedAndFormattedPerson)
   })
+  .catch(error => next(error))
 })
 
 app.put('/api/persons/:id', (request, response, next) => {
@@ -52,7 +49,7 @@ app.put('/api/persons/:id', (request, response, next) => {
     .catch(error => next(error))
 })
 
-app.get('/api/persons', (request, response) => {
+app.get('/api/persons', (request, response, next) => {
   Person.find({})
     .then(persons => {
       response.json(persons.map(person => person.toJSON()))
@@ -80,7 +77,7 @@ app.delete('/api/persons/:id', (request, response, next) => {
     .catch(error => next(error))
 })
 
-app.get('/info', (request, response) => {
+app.get('/info', (request, response, next) => {
 
   Person.countDocuments({}, function(error, count) {
     
@@ -101,13 +98,13 @@ const unknownEndpoint = (request, response) => {
 app.use(unknownEndpoint)
 
 const errorHandler = (error, request, response, next) => {
-  console.error(error.message)
+  console.error(error.name)
 
   if (error.name === 'CastError' && error.kind == 'ObjectId') {
     return response.status(400).send({ error: 'malformatted id' })
   } else if (error.name === 'ValidationError') {
-		return response.status(400).json({ error: error.message })
-	}
+    return response.status(400).json({ error: error.message })
+  }
 
   next(error)
 }
