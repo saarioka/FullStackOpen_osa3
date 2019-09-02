@@ -27,11 +27,11 @@ app.post('/api/persons', (request, response, next) => {
   })
 
   person.save()
-  .then(savedPerson => savedPerson.toJSON())
-  .then(savedAndFormattedPerson => {
-    response.json(savedAndFormattedPerson)
-  })
-  .catch(error => next(error))
+    .then(savedPerson => savedPerson.toJSON())
+    .then(savedAndFormattedPerson => {
+      response.json(savedAndFormattedPerson)
+    })
+    .catch(error => next(error))
 })
 
 app.put('/api/persons/:id', (request, response, next) => {
@@ -58,36 +58,35 @@ app.get('/api/persons', (request, response, next) => {
 })
 
 app.get('/api/persons/:id', (request, response, next) => {
+
   Person.findById(request.params.id)
-  .then(person => {
-    if (person) {
-      response.json(person.toJSON())
-    } else {
-      response.status(204).end() 
-    }
-  })
-  .catch(error => next(error))
+    .then(person => {
+      if (person) {
+        response.json(person.toJSON())
+      } else {
+        response.status(204).end()
+      }
+    })
+    .catch(error => next(error))
 })
 
 app.delete('/api/persons/:id', (request, response, next) => {
   Person.findByIdAndRemove(request.params.id)
-    .then(result => {
-      response.status(204).end()
-    })
+    .then(response.status(204).end())
     .catch(error => next(error))
 })
 
 app.get('/info', (request, response, next) => {
 
   Person.countDocuments({}, function(error, count) {
-    
     response
       .send(
         count
-        ? `Phonebook has info for ${count} people</br></br> ${new Date()}`
-        : error
+          ? `Phonebook has info for ${count} people</br></br> ${new Date()}`
+          : error
       )
   })
+    .catch(error => next(error))
 })
 
 const unknownEndpoint = (request, response) => {
@@ -100,7 +99,7 @@ app.use(unknownEndpoint)
 const errorHandler = (error, request, response, next) => {
   console.error(error.name)
 
-  if (error.name === 'CastError' && error.kind == 'ObjectId') {
+  if (error.name === 'CastError' && error.kind === 'ObjectId') {
     return response.status(400).send({ error: 'malformatted id' })
   } else if (error.name === 'ValidationError') {
     return response.status(400).json({ error: error.message })
